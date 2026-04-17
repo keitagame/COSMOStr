@@ -6,12 +6,113 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
   
     <style>
-     
-
+     body{
+margin:0;
+}
+   #c{
+width:50vw;
+}
     </style>
   </head>
   <body>
    <h3 id="tk">【14:08】現在の星空</h3>
+   <canvas width="800" height="400" id="c"></canvas>
+<script>
+  const canvas = document.getElementById("c");
+  const ctx = canvas.getContext("2d");
+
+  
+function toRadians(deg) {
+  return deg * Math.PI / 180;
+}
+
+function toDegrees(rad) {
+  return rad * 180 / Math.PI;
+}
+
+// ユリウス日
+function julianDate(date) {
+  return date.getTime() / 86400000 + 2440587.5;
+}
+
+// グリニッジ恒星時（度）
+function greenwichSiderealTime(date) {
+  const JD = julianDate(date);
+  const T = (JD - 2451545.0) / 36525.0;
+
+  let GST = 280.46061837
+    + 360.98564736629 * (JD - 2451545)
+    + 0.000387933 * T * T
+    - (T * T * T) / 38710000;
+
+  return ((GST % 360) + 360) % 360;
+}
+
+// メイン変換
+function equatorialToHorizontal(raHours, decDeg, latDeg, lonDeg, date) {
+  // RA → 度
+  const raDeg = raHours * 15;
+
+  // 恒星時
+  const GST = greenwichSiderealTime(date);
+  const LST = (GST + lonDeg + 360) % 360;
+
+  // 時角
+  const H = (LST - raDeg + 360) % 360;
+
+  const hRad = toRadians(H);
+  const latRad = toRadians(latDeg);
+  const decRad = toRadians(decDeg);
+
+  // 高度
+  const sinAlt =
+    Math.sin(latRad) * Math.sin(decRad) +
+    Math.cos(latRad) * Math.cos(decRad) * Math.cos(hRad);
+
+  const alt = toDegrees(Math.asin(sinAlt));
+
+  // 方位
+  const cosAz =
+    (Math.sin(decRad) - Math.sin(toRadians(alt)) * Math.sin(latRad)) /
+    (Math.cos(toRadians(alt)) * Math.cos(latRad));
+
+  let az = toDegrees(Math.acos(cosAz));
+
+  // 東西判定
+  if (Math.sin(hRad) > 0) {
+    az = 360 - az;
+  }
+
+  return {
+    altitude: alt, // 高度（度）
+    azimuth: az    // 方位（度：北0° 東90°）
+  };
+}
+
+const date = new Date(); // 現在時刻
+
+const result = equatorialToHorizontal(
+  18.6156,   // 赤経（時間）
+  38.78,     // 赤緯（度）
+  35.4,      // 緯度（出雲）
+  132.8,     // 経度（出雲）
+  date
+);
+
+console.log(result);
+  // 黒で塗りつぶす
+  ctx.fillStyle = "black";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+const x = result.azimuth;
+  const y = result.altitude;
+
+  // 点を描く（半径3pxの丸）
+  ctx.fillStyle = "white";
+  ctx.beginPath();
+  ctx.arc(x, 300+y, 3, 0, Math.PI * 2);
+  ctx.fill();
+</script>
+
    <script>
 const now = new Date();
 
