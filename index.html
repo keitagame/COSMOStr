@@ -11,7 +11,15 @@
     </style>
   </head>
   <body>
-   
-   
+   <h3 id="tk">【14:08】現在の星空</h3>
+   <script>
+const now = new Date();
+
+const h = now.getHours();      // 時
+const m = now.getMinutes();    // 分
+const s = now.getSeconds();    // 秒
+
+document.getElementById("tk").textContent = `【${h}:${m}:${s}】現在の星空`;
+</script>
   </body>
 </html>
